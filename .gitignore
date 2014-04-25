@@ -1,0 +1,8 @@
+Assets/test-results/
+Temp/
+Library/
+web_player/
+*.sln
+*.csproj
+*.DS_Store
+*.swp
