@@ -15,7 +15,7 @@ public class Treat
 	public Treat()
 	{
 		Value = 200;
-		m_texture = Resources.Load<Texture2D>("Textures/white_circle");
+		m_texture = Resources.Load<Texture2D>("Textures/Carrot");
 		Position = new Vector2(0.0f, 0.0f);
 		Enabled = true;
 		
@@ -38,7 +38,7 @@ public class Treat
 		{
 			float percentRemaining = durationLeft / duration;
 			Color prevColor = GUI.color;
-			GUI.color = new Color(0.0f, 0.0f, 0.0f, percentRemaining);
+			GUI.color = new Color(1.0f, 1.0f, 1.0f, percentRemaining);
 			GUI.DrawTexture(new Rect(Position.x - treatSize / 2.0f, Position.y - treatSize / 2.0f, treatSize, treatSize), m_texture);
 			GUI.color = prevColor;
 		}

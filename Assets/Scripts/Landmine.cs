@@ -4,13 +4,13 @@ using System;
 public class Landmine : ICollidable
 {
 	Texture2D m_texture;
-	public int textureSize = 16;
+	public int textureSize = 24;
 	
 	public Vector2 Position { get; set; }
 	
 	public Landmine()
 	{
-		m_texture = Resources.Load<Texture2D>("Textures/white_circle");
+		m_texture = Resources.Load<Texture2D>("Textures/LandmineSign");
 	}
 	
 	public bool HandleCollisions(Bounds bounds)
@@ -33,9 +33,9 @@ public class Landmine : ICollidable
 	
 	public void Display()
 	{
-		Color prevColor = GUI.color;
-		GUI.color = Color.red;
+//		Color prevColor = GUI.color;
+//		GUI.color = Color.red;
 		GUI.DrawTexture(new Rect(Position.x - textureSize / 2.0f, Position.y - textureSize / 2.0f, textureSize, textureSize), m_texture);
-		GUI.color = prevColor;
+		//GUI.color = prevColor;
 	}
 }

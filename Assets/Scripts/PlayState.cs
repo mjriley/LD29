@@ -11,7 +11,11 @@ public class PlayState : IState
 	List<Treat> m_treats;
 	
 	Texture2D m_holeTexture;
+	Texture2D m_grassTexture;
+	Texture2D m_backgroundTexture;
+	
 	GUIStyle m_emptyStyle = new GUIStyle();
+	GUIStyle m_scoreStyle = new GUIStyle();
 	
 	Dictionary<KeyCode, Vector2> m_keymap;
 	
@@ -34,9 +38,16 @@ public class PlayState : IState
 		
 		m_parentRect = new Rect(0.0f, 40.0f, Screen.width, Screen.height - 40.0f);
 		
-		m_holeTexture = Resources.Load<Texture2D>("Textures/white_circle");
+		m_holeTexture = Resources.Load<Texture2D>("Textures/Hole");
+		m_grassTexture = Resources.Load<Texture2D>("Textures/Grass");
+		m_backgroundTexture = Resources.Load<Texture2D>("Textures/white_square");
 		
 		Reset();
+		
+		m_scoreStyle = new GUIStyle();
+		m_scoreStyle.alignment = TextAnchor.MiddleCenter;
+		m_scoreStyle.fontSize = 24;
+		m_scoreStyle.normal.textColor = Color.white;
 	}
 	
 	public void Reset()
@@ -221,7 +232,13 @@ public class PlayState : IState
 	{
 		Rect parent = new Rect(0.0f, 0.0f, Screen.width, 40.0f);
 		GUI.BeginGroup(parent);
-			GUI.Box(new Rect(0.0f, 0.0f, parent.width, parent.height), "Score: " + m_score);
+			Color prevColor = GUI.color;
+			GUI.color = new Color(0.0f, 0.0f, 0.0f, 0.5f);
+			Rect bounds = new Rect(0.0f, 0.0f, parent.width, parent.height);
+			GUI.DrawTexture(bounds, m_backgroundTexture);
+			GUI.color = prevColor;
+			
+			GUI.Label(bounds, "Score: " + m_score, m_scoreStyle);
 		GUI.EndGroup();
 	}
 	
@@ -244,6 +261,8 @@ public class PlayState : IState
 	
 	public void Display()
 	{
+	
+		GUI.DrawTextureWithTexCoords(new Rect(0, 0, Screen.width, Screen.height), m_grassTexture, new Rect(0, 0, 8.0f, 8.0f));
 		DisplayStatusBar();
 		
 		GUI.BeginGroup(m_parentRect);

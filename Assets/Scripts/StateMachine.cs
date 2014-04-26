@@ -4,6 +4,8 @@ using System.Collections.Generic;
 
 public class StateMachine : MonoBehaviour
 {
+	public GUIStyle testStyle;
+	
 	public enum State
 	{
 		Playing,
@@ -17,7 +19,7 @@ public class StateMachine : MonoBehaviour
 	void Start()
 	{
 		m_states[State.Playing] = new PlayState(this);
-		m_states[State.GameOver] = new GameOverState(this);
+		m_states[State.GameOver] = new GameOverState(this, testStyle);
 		
 		MoveToState(State.Playing);
 	}

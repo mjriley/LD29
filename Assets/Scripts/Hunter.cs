@@ -22,7 +22,7 @@ public class Hunter : ICollidable
 	
 	public Hunter()
 	{
-		m_hunterTexture = Resources.Load<Texture2D>("Textures/white_circle");
+		m_hunterTexture = Resources.Load<Texture2D>("Textures/Groundskeeper");
 		RunSpeed = 1.0f;
 		Position = new Vector2(Screen.width / 2.0f, Screen.height / 2.0f);
 		
@@ -123,7 +123,7 @@ public class Hunter : ICollidable
 		}
 		
 		Color prevColor = GUI.color;
-		GUI.color = Color.blue;
+		GUI.color = Color.red;
 		GUI.DrawTexture(new Rect(Position.x - hunterSize / 2.0f, Position.y - hunterSize / 2.0f, hunterSize, hunterSize), m_hunterTexture);
 		GUI.color = prevColor;
 	}

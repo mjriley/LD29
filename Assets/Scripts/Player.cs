@@ -14,7 +14,7 @@ public class Player : ICollidable
 	{
 		Position = new Vector2(0.0f, 0.0f);
 		
-		m_playerTexture = Resources.Load<Texture2D>("Textures/white_circle");
+		m_playerTexture = Resources.Load<Texture2D>("Textures/Gopher");
 		Speed = 5.0f;
 	}
 	
@@ -120,10 +120,10 @@ public class Player : ICollidable
 		}
 		GUI.color = prevColor;
 		
-		prevColor = GUI.color;
-		GUI.color = Color.red;
+//		prevColor = GUI.color;
+//		GUI.color = Color.red;
 		GUI.DrawTexture(new Rect(Position.x - playerSize / 2.0f, Position.y - playerSize / 2.0f, playerSize, playerSize), m_playerTexture);
-		GUI.color = prevColor;
+//		GUI.color = prevColor;
 	}
 }
 
