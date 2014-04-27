@@ -120,10 +120,11 @@ public class Player : ICollidable
 		}
 		GUI.color = prevColor;
 		
-//		prevColor = GUI.color;
-//		GUI.color = Color.red;
-		GUI.DrawTexture(new Rect(Position.x - playerSize / 2.0f, Position.y - playerSize / 2.0f, playerSize, playerSize), m_playerTexture);
-//		GUI.color = prevColor;
+		// only display the gopher when he pops up
+		if (IsUp())
+		{
+			GUI.DrawTexture(new Rect(Position.x - playerSize / 2.0f, Position.y - playerSize / 2.0f, playerSize, playerSize), m_playerTexture);
+		}
 	}
 }
 

@@ -8,7 +8,7 @@ public class PlayState : IState
 
 	List<Vector2> m_holes;
 	List<Vector2> m_possibleTreats;
-	List<Treat> m_treats;
+	List<IItem> m_treats;
 	
 	Texture2D m_holeTexture;
 	Texture2D m_grassTexture;
@@ -18,6 +18,8 @@ public class PlayState : IState
 	AudioSource m_backingSource;
 	
 	AudioClip m_carrotEffect;
+	AudioClip m_explosionEffect;
+	AudioClip m_gotchaEffect;
 	AudioSource m_effectSource;
 	
 	GUIStyle m_emptyStyle = new GUIStyle();
@@ -29,11 +31,15 @@ public class PlayState : IState
 	Player m_player;		
 	Hunter m_hunter;
 	
+	bool m_enabled;
+	StateMachine.State m_nextState;
+	
 	Vector2 m_selectedHole;
 	Rect m_parentRect;
 	
 	int m_score;
 	int m_maxTreats = 3;
+	float m_detonatorPercent = 5;
 	float m_treatGenerationWindow = 1.0f;
 	float m_secondsToNextTreat;
 	
@@ -45,6 +51,7 @@ public class PlayState : IState
 		m_parent = parent;
 		m_backingSource = backingSource;
 		m_effectSource = effectSource;
+		m_effectSource.volume = 0.15f;
 		
 		m_parentRect = new Rect(0.0f, 40.0f, Screen.width, Screen.height - 40.0f);
 		
@@ -54,6 +61,8 @@ public class PlayState : IState
 		
 		m_backgroundTrack = Resources.Load<AudioClip>("Sounds/backing");
 		m_carrotEffect = Resources.Load<AudioClip>("Sounds/Pickup");
+		m_explosionEffect = Resources.Load<AudioClip>("Sounds/Explosion");
+		m_gotchaEffect = Resources.Load<AudioClip>("Sounds/Gotcha");
 		
 		Reset();
 		
@@ -78,6 +87,7 @@ public class PlayState : IState
 	
 	public void Reset()
 	{
+		m_enabled = true;
 		//m_keymap = new Dictionary<KeyCode, Vector2>();
 		
 		m_player = new Player();
@@ -106,8 +116,16 @@ public class PlayState : IState
 	{
 		if (m_hunter.HandleCollisions(m_player.bounds))
 		{
-			m_parent.MoveToState(StateMachine.State.GameOver);
+			m_effectSource.clip = m_explosionEffect;
+			m_effectSource.Play();
+			Disable();
+			//m_parent.MoveToState(StateMachine.State.GameOver);
 		}
+	}
+	
+	private bool ReadyToExit()
+	{
+		return (!m_effectSource.isPlaying && m_hunter.AnimationsComplete());
 	}
 	
 	private void GenerateHoles()
@@ -158,7 +176,7 @@ public class PlayState : IState
 	
 	private void InitializeTreats()
 	{
-		m_treats = new List<Treat>();
+		m_treats = new List<IItem>();
 		m_possibleTreats = new List<Vector2>();
 		foreach (Vector2 hole in m_holes)
 		{
@@ -173,19 +191,30 @@ public class PlayState : IState
 	private void GenerateNewTreat()
 	{
 		int index = UnityEngine.Random.Range(0, m_possibleTreats.Count);
-		Treat treat = new Treat();
-		treat.Position = m_possibleTreats[index];
-		m_treats.Add(treat);
+		IItem item;
+		
+		int roll = UnityEngine.Random.Range(0, 100);
+		if (roll < m_detonatorPercent)
+		{
+			item = new Detonator();
+		}
+		else
+		{
+			item = new Treat();
+			//Treat treat = new Treat();
+		}
+		
+		item.Position = m_possibleTreats[index];
+		m_treats.Add(item);
 		m_possibleTreats.RemoveAt(index);
 	}
 	
 	private void UpdateTreats()
 	{
-		
 		// remove expiring treats
-		List<Treat> deadTreats = new List<Treat>();
+		List<IItem> deadTreats = new List<IItem>();
 		
-		foreach (Treat treat in m_treats)
+		foreach (IItem treat in m_treats)
 		{
 			treat.Update();
 			
@@ -195,9 +224,9 @@ public class PlayState : IState
 			}
 		}
 		
-		foreach (Treat treat in deadTreats)
+		foreach (IItem item in deadTreats)
 		{
-			m_treats.Remove(treat);
+			m_treats.Remove(item);
 		}
 		
 		// generate a new, different treat (if one expired on this frame)
@@ -212,7 +241,7 @@ public class PlayState : IState
 		}
 		
 		// add the expiring treats back to the pool
-		foreach (Treat treat in deadTreats)
+		foreach (IItem treat in deadTreats)
 		{
 			m_treats.Remove(treat);
 			m_possibleTreats.Add(treat.Position);
@@ -236,38 +265,54 @@ public class PlayState : IState
 				Vector2 currentPosition = m_player.Position;
 				Vector2? closestHole = Hole.GetClosestHole(currentPosition, pair.Value, m_holes);
 				
-				if (pair.Key == KeyCode.D)
-				{
-					Debug.Log("Position is: " + currentPosition);
-					Debug.Log("Closest hole value is: " + closestHole.GetValueOrDefault());
-				
-				}
 				if (closestHole.HasValue)
 				{
 					m_player.Destination = closestHole.GetValueOrDefault();
 				}
 			}
 		}
-
-
+	}
+	
+	private void Disable()
+	{
+		m_enabled = false;
+		m_hunter.Enabled = false;
+	}
+	
+	private void Cleanup()
+	{
+		m_backingSource.Stop();
 	}
 	
 	public void Update()
 	{
-		m_hunter.RunSpeed = hunterSpeed;
-		UpdateTreats();
+		HandleKeyboard();
 		
-		m_player.Update();
+		// HACK -- this shouldn't be handled regardless, but has to in order to complete animations
 		m_hunter.Update();
 		
-		if (DidHunterFindPlayer())
+		if (m_enabled)
 		{
+			m_hunter.RunSpeed = hunterSpeed;
+			UpdateTreats();
+			
+			m_player.Update();
+			m_hunter.Update();
+			
+			if (DidHunterFindPlayer())
+			{
+				m_effectSource.clip = m_gotchaEffect;
+				m_effectSource.Play();
+				Disable();
+			}
+			
+			DetectCollisions();
+		}
+		else if (ReadyToExit())
+		{
+			Cleanup();
 			m_parent.MoveToState(StateMachine.State.GameOver);
 		}
-		
-		DetectCollisions();
-		
-		HandleKeyboard();
 	}
 	
 	private bool DidHunterFindPlayer()
@@ -294,24 +339,33 @@ public class PlayState : IState
 		GUI.EndGroup();
 	}
 	
-	private void RecycleTreat(Treat treat)
+	private void RecycleTreat(IItem item)
 	{
-		m_treats.Remove(treat);
-		m_possibleTreats.Add(treat.Position);
+		m_treats.Remove(item);
+		m_possibleTreats.Add(item.Position);
 	}
 	
 	private void ConsumeTreat()
 	{
-		Treat treat = m_treats.Find(p => p.Position.x == m_player.Position.x && p.Position.y == m_player.Position.y);
-		if (treat != null)
+		IItem item = m_treats.Find(p => p.Position.x == m_player.Position.x && p.Position.y == m_player.Position.y);
+		if (item != null)
 		{
-			m_effectSource.clip = m_carrotEffect;
-			m_effectSource.volume = 0.15f;
-			m_effectSource.Play();
-			m_score += treat.Value;
-			RecycleTreat(treat);
+			if (item is Treat)
+			{
+				Treat treat = (Treat)item;
+				m_effectSource.clip = m_carrotEffect;
+				//m_effectSource.volume = 0.15f;
+				m_effectSource.Play();
+				m_score += treat.Value;
+			}
+			else if (item is Detonator)
+			{
+				m_hunter.DetonateMines();
+				m_effectSource.clip = m_explosionEffect;
+				m_effectSource.Play();
+			}
+			RecycleTreat(item);
 		}
-		
 	}
 	
 	public void Display()
@@ -334,9 +388,9 @@ public class PlayState : IState
 			m_player.Display();
 			m_hunter.Display();
 			
-			foreach (Treat treat in m_treats)
+			foreach (IItem item in m_treats)
 			{
-				treat.Display();
+				item.Display();
 			}
 		GUI.EndGroup();
 	}

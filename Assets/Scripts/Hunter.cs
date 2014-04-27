@@ -16,9 +16,10 @@ public class Hunter : ICollidable
 	private List<Landmine> m_landmines;
 	float mineCheckFrequency = 5.0f;
 	float checkTimeRemaining;
-	//float mineLiklihood = 0.5f;
 	
 	public Bounds bounds { get { return new Bounds(Position, new Vector2(hunterSize, hunterSize)); } } 
+	
+	public bool Enabled { get; set; }
 	
 	public Hunter()
 	{
@@ -28,6 +29,23 @@ public class Hunter : ICollidable
 		
 		m_landmines = new List<Landmine>();
 		checkTimeRemaining = mineCheckFrequency;
+		
+		Enabled = true;
+	}
+	
+	public bool AnimationsComplete()
+	{
+		foreach (Landmine mine in m_landmines)
+		{
+			if (!mine.Active && !mine.HasDetonated())
+			{
+				Debug.Log("Not Complete");
+				return false;
+			}
+		}
+		
+		Debug.Log("Complete");
+		return true;
 	}
 	
 	private bool ReachedTarget()
@@ -53,6 +71,14 @@ public class Hunter : ICollidable
 		return m_landmines;
 	} 
 	
+	public void DetonateMines()
+	{
+		foreach (Landmine mine in m_landmines)
+		{
+			mine.Detonate();
+		}
+	}
+	
 	private void PlantMines()
 	{
 		checkTimeRemaining -= Time.deltaTime;
@@ -66,6 +92,22 @@ public class Hunter : ICollidable
 			
 			checkTimeRemaining = mineCheckFrequency;
 		}
+	}
+	
+	private void UpdateMines()
+	{
+		List<Landmine> nextMines = new List<Landmine>();
+		foreach (Landmine mine in m_landmines)
+		{
+			mine.Update();
+			
+			if (!mine.HasDetonated())
+			{
+				nextMines.Add(mine);
+			}
+		}
+		
+		m_landmines = nextMines;
 	}
 	
 	private void UpdatePosition()
@@ -111,8 +153,15 @@ public class Hunter : ICollidable
 	
 	public void Update()
 	{
-		UpdatePosition();
-		PlantMines();
+		// a hack -- this should be handled differently
+		// right now only updating mines in a disabled state so that the animation will finish
+		// this would likely be a serious issue if pause was implemented
+		if (Enabled)
+		{
+			UpdatePosition();
+			PlantMines();
+		}
+		UpdateMines();
 	}
 	
 	public void Display()

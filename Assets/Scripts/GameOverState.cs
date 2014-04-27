@@ -27,7 +27,7 @@ public class GameOverState : IState
 	{
 		if (m_camera != null)
 		{
-			m_camera.backgroundColor = Color.red;
+			m_camera.backgroundColor = Color.black;
 		}
 	}
 	
@@ -50,7 +50,7 @@ public class GameOverState : IState
 		GUI.Label(new Rect(gopherX + texSizeX + padding, gopherY + texSizeY / 2.0f - textCoords.y / 2.0f, textCoords.x, textCoords.y), overText, m_style);
 		
 		
-		if (GUI.Button(new Rect(Screen.width / 2 - 50, gopherY + texSizeY + padding, 100, 30), "Start Over?"))
+		if (GUI.Button(new Rect(Screen.width / 2 - 50, gopherY + texSizeY + padding, 100, 30), "Play Again?"))
 		{
 			m_parent.MoveToState(StateMachine.State.Playing);
 		}

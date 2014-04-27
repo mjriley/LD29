@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Treat
+public class Treat : IItem
 {
 	public int Value { get; set; }
 	
