@@ -93,7 +93,7 @@ public class PlayState : IState
 		//m_keymap = new Dictionary<KeyCode, Vector2>();
 		
 		m_player = new Player();
-		m_hunter = new Hunter();
+		m_hunter = new Hunter(m_effectSource);
 		GenerateHoles();
 		InitializeTreats();
 		

@@ -15,13 +15,17 @@ public class Hunter : ICollidable
 	
 	private List<Landmine> m_landmines;
 	float mineCheckFrequency = 5.0f;
+	int m_clipProbability = 50;
 	float checkTimeRemaining;
 	
 	public Bounds bounds { get { return new Bounds(Position, new Vector2(hunterSize, hunterSize)); } } 
 	
+	List<AudioClip> m_audioclips;
+	AudioSource m_audio;
+	
 	public bool Enabled { get; set; }
 	
-	public Hunter()
+	public Hunter(AudioSource audio)
 	{
 		m_hunterTexture = Resources.Load<Texture2D>("Textures/Groundskeeper");
 		RunSpeed = 1.0f;
@@ -31,6 +35,13 @@ public class Hunter : ICollidable
 		checkTimeRemaining = mineCheckFrequency;
 		
 		Enabled = true;
+		
+		m_audioclips = new List<AudioClip>();
+		m_audioclips.Add(Resources.Load<AudioClip>("Sounds/argh"));
+		m_audioclips.Add(Resources.Load<AudioClip>("Sounds/heregopher"));
+		m_audioclips.Add(Resources.Load<AudioClip>("Sounds/howdoyoulike"));
+		
+		m_audio = audio;
 	}
 	
 	public bool AnimationsComplete()
@@ -88,6 +99,19 @@ public class Hunter : ICollidable
 			m_landmines.Add(mine);
 			
 			checkTimeRemaining = mineCheckFrequency;
+			
+			// determine whether to play sound
+			if (Random.Range(0, 100) < m_clipProbability)
+			{
+				if (!m_audio.isPlaying)
+				{
+					// find the sound to play
+					int index = Random.Range(0, m_audioclips.Count);
+					m_audio.clip = m_audioclips[index];
+					m_audio.Play();
+				}
+			}
+			
 		}
 	}
 	
