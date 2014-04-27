@@ -23,7 +23,8 @@ public class PlayState : IState
 	GUIStyle m_emptyStyle = new GUIStyle();
 	GUIStyle m_scoreStyle = new GUIStyle();
 	
-	Dictionary<KeyCode, Vector2> m_keymap;
+	//Dictionary<KeyCode, Vector2> m_keymap;
+	Dictionary<KeyCode, Direction> m_keymap;
 	
 	Player m_player;		
 	Hunter m_hunter;
@@ -40,6 +41,7 @@ public class PlayState : IState
 
 	public PlayState(StateMachine parent, AudioSource backingSource, AudioSource effectSource)
 	{
+		InitKeymap();
 		m_parent = parent;
 		m_backingSource = backingSource;
 		m_effectSource = effectSource;
@@ -61,9 +63,23 @@ public class PlayState : IState
 		m_scoreStyle.normal.textColor = Color.white;
 	}
 	
+	private void InitKeymap()
+	{
+		m_keymap = new Dictionary<KeyCode, Direction>();
+		m_keymap[KeyCode.Q] = Direction.NorthWest;
+		m_keymap[KeyCode.W] = Direction.North;
+		m_keymap[KeyCode.E] = Direction.NorthEast;
+		m_keymap[KeyCode.D] = Direction.East;
+		m_keymap[KeyCode.C] = Direction.SouthEast;
+		m_keymap[KeyCode.X] = Direction.South;
+		m_keymap[KeyCode.Z] = Direction.SouthWest;
+		m_keymap[KeyCode.A] = Direction.West;
+	}
+	
 	public void Reset()
 	{
-		m_keymap = new Dictionary<KeyCode, Vector2>();
+		//m_keymap = new Dictionary<KeyCode, Vector2>();
+		
 		m_player = new Player();
 		m_hunter = new Hunter();
 		GenerateHoles();
@@ -103,40 +119,40 @@ public class PlayState : IState
 		// top row
 		//m_holes.Add(new Vector2(0.0f + m_holeTexture.width / 2.0f, 0.0f + m_holeTexture.height / 2.0f));
 		point = new Vector2(0.0f + m_holeTexture.width / 2.0f, 0.0f + m_holeTexture.height / 2.0f);
-		m_keymap[KeyCode.Q] = point;
+		//m_keymap[KeyCode.Q] = point;
 		m_holes.Add(point);
 		
 		point = new Vector2((m_parentRect.width - m_holeTexture.width) / 2.0f + m_holeTexture.width / 2.0f, 0.0f + m_holeTexture.height / 2.0f);
-		m_keymap[KeyCode.W] = point;
+		//m_keymap[KeyCode.W] = point;
 		m_holes.Add(point);
 		
 		point = new Vector2(m_parentRect.width - m_holeTexture.width + m_holeTexture.width / 2.0f, 0.0f + m_holeTexture.height / 2.0f);
-		m_keymap[KeyCode.E] = point;
+		//m_keymap[KeyCode.E] = point;
 		m_holes.Add(point);
 		
 		
 		// 2nd row
 		float row_height = (m_parentRect.height - m_holeTexture.height) / 2.0f + m_holeTexture.height / 2.0f;
 		point = new Vector2(m_parentRect.width / 3.0f - m_holeTexture.width / 2.0f + m_holeTexture.width / 2.0f, row_height);
-		m_keymap[KeyCode.A] = point;
+		//m_keymap[KeyCode.A] = point;
 		m_holes.Add(point);
 		
 		point = new Vector2(m_parentRect.width * 2.0f / 3.0f - m_holeTexture.width / 2.0f + m_holeTexture.width / 2.0f, row_height);
-		m_keymap[KeyCode.D] = point;
+		//m_keymap[KeyCode.D] = point;
 		m_holes.Add(point);
 		
 		// 3rd row
 		row_height = m_parentRect.height - m_holeTexture.height + m_holeTexture.height / 2.0f;
 		point = new Vector2(0.0f + m_holeTexture.width / 2.0f, row_height);
-		m_keymap[KeyCode.Z] = point;
+		//m_keymap[KeyCode.Z] = point;
 		m_holes.Add(point);
 		
 		point = new Vector2((m_parentRect.width - m_holeTexture.width) / 2.0f + m_holeTexture.width / 2.0f, row_height);
-		m_keymap[KeyCode.X] = point;
+		//m_keymap[KeyCode.X] = point;
 		m_holes.Add(point);
 		
 		point = new Vector2(m_parentRect.width - m_holeTexture.width + m_holeTexture.width / 2.0f, row_height);
-		m_keymap[KeyCode.C] = point;
+		//m_keymap[KeyCode.C] = point;
 		m_holes.Add(point);
 	}
 	
@@ -205,13 +221,35 @@ public class PlayState : IState
 	
 	private void HandleKeyboard()
 	{
-		foreach (KeyValuePair<KeyCode, Vector2> pair in m_keymap)
+//		foreach (KeyValuePair<KeyCode, Vector2> pair in m_keymap)
+//		{
+//			if (Input.GetKeyDown(pair.Key))
+//			{
+//				m_player.Destination = pair.Value;
+//			}
+//		}
+
+		foreach (KeyValuePair<KeyCode, Direction> pair in m_keymap)
 		{
 			if (Input.GetKeyDown(pair.Key))
 			{
-				m_player.Destination = pair.Value;
+				Vector2 currentPosition = m_player.Position;
+				Vector2? closestHole = Hole.GetClosestHole(currentPosition, pair.Value, m_holes);
+				
+				if (pair.Key == KeyCode.D)
+				{
+					Debug.Log("Position is: " + currentPosition);
+					Debug.Log("Closest hole value is: " + closestHole.GetValueOrDefault());
+				
+				}
+				if (closestHole.HasValue)
+				{
+					m_player.Destination = closestHole.GetValueOrDefault();
+				}
 			}
 		}
+
+
 	}
 	
 	public void Update()
