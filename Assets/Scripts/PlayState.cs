@@ -14,6 +14,12 @@ public class PlayState : IState
 	Texture2D m_grassTexture;
 	Texture2D m_backgroundTexture;
 	
+	AudioClip m_backgroundTrack;
+	AudioSource m_backingSource;
+	
+	AudioClip m_carrotEffect;
+	AudioSource m_effectSource;
+	
 	GUIStyle m_emptyStyle = new GUIStyle();
 	GUIStyle m_scoreStyle = new GUIStyle();
 	
@@ -32,15 +38,20 @@ public class PlayState : IState
 	
 	StateMachine m_parent;
 
-	public PlayState(StateMachine parent)
+	public PlayState(StateMachine parent, AudioSource backingSource, AudioSource effectSource)
 	{
 		m_parent = parent;
+		m_backingSource = backingSource;
+		m_effectSource = effectSource;
 		
 		m_parentRect = new Rect(0.0f, 40.0f, Screen.width, Screen.height - 40.0f);
 		
 		m_holeTexture = Resources.Load<Texture2D>("Textures/Hole");
 		m_grassTexture = Resources.Load<Texture2D>("Textures/Grass");
 		m_backgroundTexture = Resources.Load<Texture2D>("Textures/white_square");
+		
+		m_backgroundTrack = Resources.Load<AudioClip>("Sounds/backing");
+		m_carrotEffect = Resources.Load<AudioClip>("Sounds/Pickup");
 		
 		Reset();
 		
@@ -64,6 +75,9 @@ public class PlayState : IState
 		m_score = 0;
 		
 		m_player.PoppedUp += HandlePlayerEmergence;
+		m_backingSource.clip = m_backgroundTrack;
+		m_backingSource.loop = true;
+		m_backingSource.Play();
 	}
 	
 	private void HandlePlayerEmergence(object player, EventArgs args)
@@ -253,6 +267,9 @@ public class PlayState : IState
 		Treat treat = m_treats.Find(p => p.Position.x == m_player.Position.x && p.Position.y == m_player.Position.y);
 		if (treat != null)
 		{
+			m_effectSource.clip = m_carrotEffect;
+			m_effectSource.volume = 0.15f;
+			m_effectSource.Play();
 			m_score += treat.Value;
 			RecycleTreat(treat);
 		}
