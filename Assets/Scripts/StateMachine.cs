@@ -16,6 +16,24 @@ public class StateMachine : MonoBehaviour
 		GameOver
 	};
 	
+//	bool m_active = false;
+//	public bool Active
+//	{
+//		get
+//		{
+//			return m_active;
+//		}
+//		
+//		set
+//		{
+//			m_active = value;
+//			if (m_currentState != null)
+//			{
+//				m_currentState.Active = value;
+//			}
+//		}
+//	}
+	
 	Dictionary<State, IState> m_states = new Dictionary<State, IState>();
 	
 	IState m_currentState;
@@ -29,6 +47,8 @@ public class StateMachine : MonoBehaviour
 		m_states[State.GameOver] = new GameOverState(this, testStyle);
 		
 		MoveToState(State.Playing);
+		
+		//Active = false;
 	}
 	
 	void Update()

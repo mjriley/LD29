@@ -22,10 +22,8 @@ public class PlayState : IState
 	AudioClip m_gotchaEffect;
 	AudioSource m_effectSource;
 	
-	GUIStyle m_emptyStyle = new GUIStyle();
 	GUIStyle m_scoreStyle = new GUIStyle();
 	
-	//Dictionary<KeyCode, Vector2> m_keymap;
 	Dictionary<KeyCode, Direction> m_keymap;
 	
 	Player m_player;		
@@ -44,6 +42,8 @@ public class PlayState : IState
 	float m_secondsToNextTreat;
 	
 	StateMachine m_parent;
+	
+	public bool Active { get; set; }
 
 	public PlayState(StateMachine parent, AudioSource backingSource, AudioSource effectSource)
 	{
@@ -70,6 +70,8 @@ public class PlayState : IState
 		m_scoreStyle.alignment = TextAnchor.MiddleCenter;
 		m_scoreStyle.fontSize = 24;
 		m_scoreStyle.normal.textColor = Color.white;
+		
+		Active = true;
 	}
 	
 	private void InitKeymap()
@@ -103,7 +105,10 @@ public class PlayState : IState
 		m_player.PoppedUp += HandlePlayerEmergence;
 		m_backingSource.clip = m_backgroundTrack;
 		m_backingSource.loop = true;
-		m_backingSource.Play();
+		if (Active)
+		{
+			m_backingSource.Play();
+		}
 	}
 	
 	private void HandlePlayerEmergence(object player, EventArgs args)
@@ -286,6 +291,11 @@ public class PlayState : IState
 	
 	public void Update()
 	{
+//		if (!Active)
+//		{
+//			return;
+//		}
+		
 		HandleKeyboard();
 		
 		// HACK -- this shouldn't be handled regardless, but has to in order to complete animations
@@ -370,19 +380,17 @@ public class PlayState : IState
 	
 	public void Display()
 	{
-	
 		GUI.DrawTextureWithTexCoords(new Rect(0, 0, Screen.width, Screen.height), m_grassTexture, new Rect(0, 0, 8.0f, 8.0f));
-		DisplayStatusBar();
+		if (Active)
+		{
+			DisplayStatusBar();
+		}
 		
 		GUI.BeginGroup(m_parentRect);
 		
 			foreach (Vector2 hole in m_holes)
 			{
-				if (GUI.Button(new Rect(hole.x - m_holeTexture.width / 2.0f, hole.y - m_holeTexture.height / 2.0f, m_holeTexture.width, m_holeTexture.height), m_holeTexture, m_emptyStyle))
-				{
-					Vector2 holePosition = new Vector2(hole.x, hole.y);
-					m_player.Destination = holePosition;
-				}
+				GUI.DrawTexture(new Rect(hole.x - m_holeTexture.width / 2.0f, hole.y - m_holeTexture.height / 2.0f, m_holeTexture.width, m_holeTexture.height), m_holeTexture);
 			}
 			
 			m_player.Display();

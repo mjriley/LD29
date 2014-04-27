@@ -39,12 +39,9 @@ public class Hunter : ICollidable
 		{
 			if (!mine.Active && !mine.HasDetonated())
 			{
-				Debug.Log("Not Complete");
 				return false;
 			}
 		}
-		
-		Debug.Log("Complete");
 		return true;
 	}
 	

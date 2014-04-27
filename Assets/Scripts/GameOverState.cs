@@ -11,6 +11,8 @@ public class GameOverState : IState
 	
 	Camera m_camera;
 	
+	public bool Active { get; set; }
+	
 	public GameOverState(StateMachine parent, GUIStyle style)
 	{
 		m_parent = parent;
